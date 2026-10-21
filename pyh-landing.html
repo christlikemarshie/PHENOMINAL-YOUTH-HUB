@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PYH | Phenomenal Youth Hub</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+
+    <!-- Gold scroll progress bar (moved by script.js) -->
+    <div class="progress" aria-hidden="true"></div>
+
+    <header class="nav">
+      <a class="brand" href="#top" aria-label="PYH home">
+        <img src="images/logo.png" alt="PYH logo">
+        <span>PYH</span>
+      </a>
+
+      <nav class="links" id="menu" aria-label="Main">
+        <a href="#top">Home</a>
+        <a href="#sermons">Sermons</a>
+        <a href="#blog">Blog</a>
+        <a href="#about">About us</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <!-- Hamburger button. It only shows on phones and tablets (see style.css) and
+           opens or closes the menu above. script.js handles the click. -->
+      <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </header>
+
+    <!--  MAIN CONTENT STARTS HERE  -->
+    <main id="top">
+      <!-- HERO: big photo, headline and the orbiting circles -->
+      <div class="hero">
+        <!-- Background photo (shown in black and white by the CSS). Replace hero.jpg (it sits in the same folder as this page) to change it. -->
+        <img class="bg" src="images/hero.jpg" alt="Young people praying together at the Youth Connect Conference">
+
+        <!-- Headline and "Know Jesus" button -->
+        <div class="wrap">
+          <h1>“Doubt Your Doubts Before Faith”</h1>
+          <a class="glass-btn" href="#about">Know Jesus</a>
+        </div>
+
+        <!-- ORBIT: the dashed arc with three picture circles.
+             script.js moves the circles along the arc. aria-hidden hides this
+             decoration from screen readers. -->
+
+        <div class="orbit" aria-hidden="true">
+          <!-- The dashed half-ring line (an SVG path drawn from the top to the bottom, curving left) -->
+          <svg class="ring" viewBox="0 0 100 100" fill="none">
+            <path d="M50 12 A38 38 0 0 0 50 88" stroke="#fff" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="6 8" vector-effect="non-scaling-stroke"/>
+          </svg>
+
+          <!-- images on the dashd circle -->
+          <div class="badge">
+            <div class="slot">
+              <img src="images/dove.jpg" alt="" onerror="this.parentNode.classList.add('empty');this.remove()">
+            </div>
+          </div>
+          <div class="badge">
+            <div class="slot">
+              <img src="images/cross.jpg" alt="" onerror="this.parentNode.classList.add('empty');this.remove()">
+            </div>
+          </div>
+          <div class="badge">
+            <div class="slot"><img src="images/father.jpg" alt="" onerror="this.parentNode.classList.add('empty');this.remove()"></div>
+          </div>
+        </div>
+
+      </div>
+      <!-- WORDS: three huge words that slide up, hold, slide away and repeat forever (animated by script.js, see the WORDS LOOP block) -->
+      <section class="words" id="about">
+        <div class="wrap">
+          <p class="kicker reveal">WHO WE ARE</p>
+          <h2 class="big loop-text">
+            <span class="mask"><span data-from="letters">PHENOMENAL</span></span>
+            <span class="mask"><span data-from="right">YOUTH</span></span>
+            <span class="mask"><span data-from="bottom">HUB</span></span>
+          </h2>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>
