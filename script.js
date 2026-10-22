@@ -136,7 +136,6 @@
 /* ---------- 3. SCROLL ANIMATIONS ----------
    - Anything with class "reveal" gets the class "in" when it
      scrolls into view (style.css then animates it).
-   - The gold bar at the top shows how far down the page you are.
    We use IntersectionObserver (the browser tells us when something appears)
    instead of listening to every scroll event, which is smoother and lighter. */
 
@@ -164,23 +163,6 @@
     targets.forEach((el) => observer.observe(el));
   }
 
-  // Scroll progress bar (gold line at the very top)
-  const bar = document.querySelector(".progress");
-  if (bar && !reduce) {
-    let ticking = false;
-    const update = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      bar.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
-      ticking = false;
-    };
-    window.addEventListener("scroll", () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    });
-    update();
-  }
 })();
 
 
@@ -195,9 +177,11 @@
    which does the same job as CSS @keyframes but is controlled from JavaScript. */
 
 (() => {
+  const section = document.querySelector(".words");
   const words = document.querySelectorAll(".loop-text .mask > span");
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!words.length || reduce) return;   // no motion wanted: the words just stay put
+  if (!section || !words.length || reduce) return;   // no motion wanted: the words just stay put
+  section.classList.add("motion-ready");
 
   // --- Settings you can change ---
   const ROUND = 5000;       // length of one full round, in milliseconds (bigger = slower)
@@ -230,7 +214,7 @@
     );
   };
 
-  words.forEach((word, i) => {
+  const startWordLoop = () => words.forEach((word, i) => {
     const from = word.dataset.from;
 
     if (from === "letters") {
@@ -251,6 +235,47 @@
       play(word, from, i * WORD_GAP, false);
     }
   });
+
+  // First slide the full title into view when the section is reached. Start
+  // the existing word-by-word loop only after that entrance has finished.
+  const observer = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    section.classList.add("scroll-enter");
+    observer.disconnect();
+    window.setTimeout(startWordLoop, 1000);
+  }, { threshold: 0.25 });
+  observer.observe(section);
+})();
+
+
+/* ---------- 4b. FIRST-VISIT INTRO ----------
+   On the first page load in this tab, briefly guide visitors to the title,
+   pause so they can read it, then return smoothly to the hero. */
+(() => {
+  const section = document.querySelector(".words");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const introKey = "pyh-title-intro-seen";
+  if (!section || reduce || sessionStorage.getItem(introKey)) return;
+  sessionStorage.setItem(introKey, "1");
+
+  // Avoid taking control if the browser restored the page somewhere below top.
+  if (window.scrollY > 5) return;
+
+  let cancelled = false;
+  const cancelIntro = () => { cancelled = true; };
+  ["wheel", "touchstart", "keydown"].forEach((eventName) => {
+    window.addEventListener(eventName, cancelIntro, { once: true, passive: true });
+  });
+
+  window.setTimeout(() => {
+    if (cancelled) return;
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // Let the title's entrance and its first word sequence play before going home.
+    window.setTimeout(() => {
+      if (!cancelled) window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 4200);
+  }, 650);
 })();
 
 
@@ -282,4 +307,159 @@
     if (e.key === "Escape") setOpen(false);
   });
   window.matchMedia("(min-width: 901px)").addEventListener("change", () => setOpen(false));
+})();
+
+
+/* ---------- STORY RAIL ----------
+   Cards enter first, then the rail drifts left-to-right in a slow seamless
+   loop while remaining interactive. */
+(() => {
+  const heading = document.querySelector(".story-heading");
+  const track = document.querySelector("[data-story-track]");
+  if (!track) return;
+  const originals = Array.from(track.querySelectorAll(".story-card"));
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  originals.forEach((card, index) => {
+    card.dataset.storyIndex = String(index);
+    card.dataset.loopCopy = "0";
+  });
+
+  const makeClones = (copyIndex) => originals.map((card) => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.dataset.loopCopy = String(copyIndex);
+    clone.querySelectorAll("button").forEach((button) => { button.tabIndex = -1; });
+    return clone;
+  });
+  track.prepend(...makeClones(-1));
+  track.append(...makeClones(1));
+  const cards = Array.from(track.querySelectorAll(".story-card"));
+  let cycleWidth = 0;
+  let loopStarted = false;
+  let previousFrame = 0;
+  let motionTime = 0;
+  let mouseCard = null;
+  let pressedCard = null;
+  const speed = 26; // pixels per second: slow enough to read, visible in motion
+
+  const measureLoop = () => {
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    cycleWidth = originals.reduce((sum, card) => sum + card.getBoundingClientRect().width, 0) + gap * originals.length;
+    if (cycleWidth) track.scrollLeft = cycleWidth;
+  };
+
+  if (reduce || !("IntersectionObserver" in window)) {
+    heading?.classList.add("is-visible");
+    cards.forEach((card) => card.classList.add("is-visible"));
+  } else {
+    if (heading) {
+      const titleObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          titleObserver.unobserve(entry.target);
+        });
+      }, { threshold: 0.18 });
+      titleObserver.observe(heading);
+    }
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        cardObserver.unobserve(entry.target);
+      });
+    }, { root: track, threshold: 0.18 });
+    cards.forEach((card) => cardObserver.observe(card));
+  }
+
+  const move = (direction) => {
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    track.scrollBy({ left: direction * (originals[0].getBoundingClientRect().width + gap), behavior: reduce ? "auto" : "smooth" });
+  };
+  const animate = (now) => {
+    if (previousFrame && loopStarted && cycleWidth) {
+      const delta = now - previousFrame;
+      if (!mouseCard && !pressedCard) {
+        motionTime += delta;
+        track.scrollLeft -= (delta / 1000) * speed;
+        if (track.scrollLeft < 1) track.scrollLeft += cycleWidth;
+        if (track.scrollLeft >= cycleWidth * 2) track.scrollLeft -= cycleWidth;
+
+        // One continuous sine wave travels across every repeated card set.
+        const entranceEase = Math.min(1, motionTime / 2200);
+        cards.forEach((card) => {
+          const position = Number(card.dataset.loopCopy) * originals.length + Number(card.dataset.storyIndex);
+          const phase = position * (Math.PI * 2 / originals.length);
+          const y = Math.sin(motionTime * 0.00072 + phase) * 18 * entranceEase;
+          card.style.setProperty("--zigzag-y", `${y.toFixed(2)}px`);
+        });
+      }
+    }
+    previousFrame = now;
+    requestAnimationFrame(animate);
+  };
+
+  track.addEventListener("click", (event) => {
+    const imageButton = event.target.closest(".story-image-frame");
+    if (!imageButton) return;
+    const card = imageButton.closest(".story-card");
+    const zoomed = card.classList.toggle("is-zoomed");
+    imageButton.setAttribute("aria-pressed", String(zoomed));
+    imageButton.setAttribute("aria-label", zoomed ? "Restore image size" : "Zoom image");
+  });
+  const focusCard = (card) => {
+    track.classList.add("is-hovering-picture");
+    track.querySelectorAll(".story-card.is-hovered").forEach((item) => item.classList.remove("is-hovered"));
+    if (card) card.classList.add("is-hovered");
+  };
+  const clearFocus = () => {
+    track.querySelectorAll(".story-card.is-hovered").forEach((item) => item.classList.remove("is-hovered"));
+    if (!mouseCard && !pressedCard) track.classList.remove("is-hovering-picture");
+  };
+  track.addEventListener("pointerover", (event) => {
+    if (event.pointerType !== "mouse") return;
+    const card = event.target.closest(".story-card");
+    if (!card || card.contains(event.relatedTarget)) return;
+    mouseCard = card;
+    focusCard(card);
+  });
+  track.addEventListener("pointerout", (event) => {
+    if (event.pointerType !== "mouse") return;
+    const card = event.target.closest(".story-card");
+    if (!card || card.contains(event.relatedTarget)) return;
+    const nextCard = event.relatedTarget?.closest?.(".story-card");
+    mouseCard = nextCard && track.contains(nextCard) ? nextCard : null;
+    if (mouseCard) focusCard(mouseCard);
+    else clearFocus();
+  });
+  track.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse") return;
+    const card = event.target.closest(".story-card");
+    if (!card) return;
+    pressedCard = card;
+    focusCard(card);
+  });
+  const releasePress = (event) => {
+    if (!pressedCard || (event?.pointerType && event.pointerType === "mouse")) return;
+    pressedCard = null;
+    if (mouseCard) focusCard(mouseCard);
+    else clearFocus();
+  };
+  window.addEventListener("pointerup", releasePress);
+  window.addEventListener("pointercancel", (event) => {
+    if (event.pointerType !== "touch") releasePress(event);
+  });
+  window.addEventListener("touchend", () => releasePress(), { passive: true });
+  window.addEventListener("touchcancel", () => releasePress(), { passive: true });
+  track.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") { event.preventDefault(); move(1); }
+    if (event.key === "ArrowLeft") { event.preventDefault(); move(-1); }
+  });
+  window.addEventListener("resize", measureLoop);
+  measureLoop();
+  // Start on page load after the card entrance time, so the loop never waits
+  // for a scroll trigger. The visitor's reduced-motion preference still
+  // removes the entrance/hover transitions; this requested rail stays moving.
+  window.setTimeout(() => { loopStarted = true; }, 1450);
+  requestAnimationFrame(animate);
 })();

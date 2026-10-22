@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PYH | Phenomenal Youth Hub</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
   </head>
   <body>
-
-    <!-- Gold scroll progress bar (moved by script.js) -->
-    <div class="progress" aria-hidden="true"></div>
 
     <header class="nav">
       <a class="brand" href="#top" aria-label="PYH home">
@@ -23,9 +20,9 @@
       <nav class="links" id="menu" aria-label="Main">
         <a href="#top">Home</a>
         <a href="#sermons">Sermons</a>
-        <a href="#blog">Blog</a>
+        <a href="#blog">Books</a>
         <a href="#about">About us</a>
-        <a href="#contact">Contact</a>
+        <a href="#contact">Devotions</a>
       </nav>
 
       <!-- Hamburger button. It only shows on phones and tablets (see style.css) and
@@ -88,7 +85,26 @@
           </h2>
         </div>
       </section>
+      <!-- Story rail: sample copy that can be replaced with real youth stories. -->
+      <section class="story-section" id="stories" aria-label="Stories from the Youth Hub">
+        <div class="story-viewport">
+          <div class="story-track" data-story-track tabindex="0" aria-label="Youth Hub stories">
+            <article class="story-card" style="--story-index: 0">
+              <button class="story-image-frame" type="button" aria-label="Zoom image" aria-pressed="false"><img src="images/community-gathering.jpg" alt="Young people gathered together at a church event" loading="lazy"></button>
+              <div class="story-card-copy"><p class="story-label">BELONGING · SAMPLE STORY</p><h3>A place to show up as you are.</h3><p>Every meaningful story starts with being welcomed into the room.</p></div>
+            </article>
+            <article class="story-card" style="--story-index: 1">
+              <button class="story-image-frame" type="button" aria-label="Zoom image" aria-pressed="false"><img src="images/worship-team.jpg" alt="Young women leading worship together" loading="lazy"></button>
+              <div class="story-card-copy"><p class="story-label">FAITH · SAMPLE STORY</p><h3>Questions are part of the journey.</h3><p>Room to listen, wonder, and discover what faith means in everyday life.</p></div>
+            </article>
+            <article class="story-card" style="--story-index: 2">
+              <button class="story-image-frame" type="button" aria-label="Zoom image" aria-pressed="false"><img src="images/father.jpg" alt="The word God carved into stone" loading="lazy"></button>
+              <div class="story-card-copy"><p class="story-label">COMMUNITY · SAMPLE STORY</p><h3>Growing stronger, together.</h3><p>Faith becomes tangible in the encouragement we give one another.</p></div>
+            </article>
+          </div>
+        </div>
+        <div class="story-footer wrap"><span>SCROLL TO EXPLORE</span><span class="story-footer-line" aria-hidden="true"></span><span>REAL PEOPLE · REAL FAITH</span></div>
+      </section>
     </main>
-
-  </body>
+</body>
 </html>
